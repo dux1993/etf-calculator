@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Early Termination Fee Calculator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .calculator {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        select,
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e4e8;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        select:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .results {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 8px;
+            margin-top: 25px;
+            display: none;
+            border-left: 4px solid #667eea;
+        }
+
+        .results.show {
+            display: block;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #e1e4e8;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .result-label {
+            color: #666;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .total {
+            font-size: 20px;
+            color: #667eea;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border: 1px solid #b3d9ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .info-box strong {
+            color: #0066cc;
+        }
+
+        .warning-box {
+            background: #fee;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .warning-box strong {
+            color: #721c24;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Early Termination Fee Calculator</h1>
+            <p>Calculate customer bills for early contract termination</p>
+        </div>
+
+        <div class="calculator">
+            <div class="info-box">
+                <strong>How it works:</strong> This calculator helps you determine the total bill when a customer breaks
+                their contract. It includes the prorated fee for active days plus 35% of the remaining commitment days
+                using the annualized daily rate.
+            </div>
+
+            <div class="form-group">
+                <label for="planSelect">Select Plan</label>
+                <select id="planSelect" required>
+                    <option value="">-- Select a plan --</option>
+                    <option value="2366">FL1 Premium Monitoring (2366) - $235/month (ETF: $7.73/day)</option>
+                    <option value="2367">FL1 Plus Monitoring (2367) - $185/month (ETF: $6.08/day)</option>
+                    <option value="2368">FL1 Basic Monitoring (2368) - $135/month (ETF: $4.44/day)</option>
+                    <option value="2363">FL2 Premium Monitoring (2363) - $265/month (ETF: $8.71/day)</option>
+                    <option value="2364">FL2 Plus Monitoring (2364) - $215/month (ETF: $7.07/day)</option>
+                    <option value="2365">FL2 Basic Monitoring (2365) - $175/month (ETF: $5.75/day)</option>
+                    <option value="2355">L1 Family Assistance (2355) - $50/month (ETF: $1.64/day)</option>
+                    <option value="2356">L2 Family Assistance (2356) - $80/month (ETF: $2.63/day)</option>
+                    <option value="2345">Share Premium Monitoring (2345) - $259/month (ETF: $8.52/day)</option>
+                    <option value="2344">Share Plus Monitoring (2344) - $209/month (ETF: $6.87/day)</option>
+                    <option value="2343">Share Basic Monitoring (2343) - $169/month (ETF: $5.56/day)</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="commitmentType">Commitment Type</label>
+                    <select id="commitmentType" required>
+                        <option value="120">120 Days</option>
+                        <option value="365">365 Days</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="billingMonth">Billing Month/Year</label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="billingMonth" style="flex: 1;" required>
+                            <option value="1">January</option>
+                            <option value="2">February</option>
+                            <option value="3">March</option>
+                            <option value="4">April</option>
+                            <option value="5">May</option>
+                            <option value="6">June</option>
+                            <option value="7">July</option>
+                            <option value="8">August</option>
+                            <option value="9">September</option>
+                            <option value="10">October</option>
+                            <option value="11">November</option>
+                            <option value="12">December</option>
+                        </select>
+                        <select id="billingYear" style="flex: 0.5;" required>
+                            <option value="2024">2024</option>
+                            <option value="2025" selected>2025</option>
+                            <option value="2026">2026</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="daysActive">Days Active in Current Month</label>
+                    <input type="number" id="daysActive" min="1" max="31" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="remainingDays">Remaining Commitment Days</label>
+                    <input type="number" id="remainingDays" min="0" required>
+                </div>
+            </div>
+
+            <button type="button" onclick="calculateFees()">Calculate Total Bill</button>
+
+            <div class="warning-box" id="warningStatic">
+                ⚠️ <strong>Please note:</strong> Device rental fees are not included in this total.
+            </div>
+
+            <div class="results" id="results">
+                <h3 style="margin-bottom: 20px; color: #333;">Billing Breakdown</h3>
+                <div class="result-item">
+                    <span class="result-label">Selected Plan:</span>
+                    <span class="result-value" id="selectedPlan"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Monthly Price:</span>
+                    <span class="result-value" id="monthlyPrice"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Prorated Amount (Active Days):</span>
+                    <span class="result-value" id="proratedAmount"></span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Early Termination Fee (35% of remaining):</span>
+                    <span class="result-value" id="etfAmount"></span>
+                </div>
+                <div class="result-item total">
+                    <span class="result-label">Total Bill:</span>
+                    <span class="result-value" id="totalBill"></span>
+                </div>
+                <div class="warning-box">
+                    ⚠️ <strong>Please note:</strong> Device rental fees are not included in this total.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set current month/year on page load
+        window.onload = function () {
+            const now = new Date();
+            document.getElementById('billingMonth').value = now.getMonth() + 1;
+            document.getElementById('billingYear').value = now.getFullYear();
+        };
+
+        // Plans data
+        const plansData = {
+            '2366': { id: 2366, description: 'FL1 Premium Monitoring', monthlyPrice: 235, etfDailyRate: 7.73 },
+            '2367': { id: 2367, description: 'FL1 Plus Monitoring', monthlyPrice: 185, etfDailyRate: 6.08 },
+            '2368': { id: 2368, description: 'FL1 Basic Monitoring', monthlyPrice: 135, etfDailyRate: 4.44 },
+            '2363': { id: 2363, description: 'FL2 Premium Monitoring', monthlyPrice: 265, etfDailyRate: 8.71 },
+            '2364': { id: 2364, description: 'FL2 Plus Monitoring', monthlyPrice: 215, etfDailyRate: 7.07 },
+            '2365': { id: 2365, description: 'FL2 Basic Monitoring', monthlyPrice: 175, etfDailyRate: 5.75 },
+            '2355': { id: 2355, description: 'L1 Family Assistance', monthlyPrice: 50, etfDailyRate: 1.64 },
+            '2356': { id: 2356, description: 'L2 Family Assistance', monthlyPrice: 80, etfDailyRate: 2.63 },
+            '2345': { id: 2345, description: 'Share Premium Monitoring', monthlyPrice: 259, etfDailyRate: 8.52 },
+            '2344': { id: 2344, description: 'Share Plus Monitoring', monthlyPrice: 209, etfDailyRate: 6.87 },
+            '2343': { id: 2343, description: 'Share Basic Monitoring', monthlyPrice: 169, etfDailyRate: 5.56 }
+        };
+
+        // Get days in month
+        function getDaysInMonth(month, year) {
+            return new Date(year, month, 0).getDate();
+        }
+
+        // Calculate fees
+        function calculateFees() {
+            const planId = document.getElementById('planSelect').value;
+            if (!planId) {
+                alert('Please select a plan');
+                return;
+            }
+
+            const plan = plansData[planId];
+            if (!plan) {
+                alert('Invalid plan selected');
+                return;
+            }
+
+            const month = parseInt(document.getElementById('billingMonth').value);
+            const year = parseInt(document.getElementById('billingYear').value);
+            const daysInMonth = getDaysInMonth(month, year);
+            const daysActive = parseInt(document.getElementById('daysActive').value);
+            const remainingDays = parseInt(document.getElementById('remainingDays').value);
+
+            // Validate inputs
+            if (!daysActive || daysActive < 1) {
+                alert('Please enter valid days active');
+                return;
+            }
+
+            if (daysActive > daysInMonth) {
+                alert('Days active cannot exceed ' + daysInMonth + ' days in the selected month');
+                return;
+            }
+
+            if (remainingDays === '' || remainingDays < 0 || isNaN(remainingDays)) {
+                alert('Please enter valid remaining days');
+                return;
+            }
+
+            // Calculate prorated amount for active days using monthly rate / days in month
+            const dailyRateForProration = plan.monthlyPrice / daysInMonth;
+            const proratedAmount = dailyRateForProration * daysActive;
+
+            // Calculate ETF using annualized daily rate
+            const etfAmount = plan.etfDailyRate * remainingDays * 0.35;
+
+            // Total
+            const totalBill = proratedAmount + etfAmount;
+
+            // Display results
+            document.getElementById('selectedPlan').textContent = plan.description;
+            document.getElementById('monthlyPrice').textContent = '$' + plan.monthlyPrice;
+            document.getElementById('proratedAmount').textContent = '$' + proratedAmount.toFixed(2) +
+                ' (' + daysActive + ' days)';
+            document.getElementById('etfAmount').textContent = '$' + etfAmount.toFixed(2) +
+                ' (' + remainingDays + ' days × 35%)';
+            document.getElementById('totalBill').textContent = '$' + totalBill.toFixed(2);
+
+            // Hide static warning and show results
+            document.getElementById('warningStatic').style.display = 'none';
+            document.getElementById('results').classList.add('show');
+        }
+    </script>
+
+</body>
+
+</html>
